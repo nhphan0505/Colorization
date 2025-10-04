@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import cv2
 from torchvision import transforms, datasets
