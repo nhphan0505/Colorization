@@ -4,7 +4,26 @@ import cv2
 import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
 
+def unnormalize_image(L, ab):
+    '''
+    Input:
+        L: Tensor of shape (B, 1, H, W), range [0, 1]
+        ab: Tensor of shape (B, 2, H, W), range [-1, 1]
+    Output:
+        L: Tensor of shape (B, 1, H, W), range [0, 255]
+        ab: Tensor of shape (B, 2, H, W), range [0, 255]
+    '''
+    return L *255, ab * 128 + 128
+
 def imshow(L, ab, title):
+    '''
+    Input:
+        L: Tensor of shape (B, 1, H, W), range [0, 255]
+        ab: Tensor of shape (B, 2, H, W), range [0, 255]
+        title: Title of the plot
+    Output:
+        Grid of 32 images in RGB format
+    '''
     img = np.concatenate([L.numpy(), ab.numpy()], axis=1)
     img = img[:32, :, :, :]
     img = np.transpose(img, (0, 2, 3, 1))
