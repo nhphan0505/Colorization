@@ -1,4 +1,5 @@
 #====================Model====================
+import torch 
 import torch.nn as nn
 # ---------------- Encoder Block ---------------- #
 class DownConv(nn.Module):
