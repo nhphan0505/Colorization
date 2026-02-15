@@ -1,0 +1,15 @@
+model: Zhang
+device: cuda
+
+train_transform: None
+batch_size: 64 
+
+loss: RebalanceCEWithLogitsLoss
+optimizer: AdamW
+weight_decay: 0.00001
+learning_rate: 0.001
+weights_path: assets/weights.pt
+
+num_epochs: 500
+log_interval: 50
+model_save_path: outputs/checkpoints/Zhang_non_augment/
