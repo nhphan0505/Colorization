@@ -31,7 +31,7 @@ class Decoder(nn.Module):
         conv = self.relu(conv)
         return conv
         
-class Unet(nn.Module):
+class Unet_Regression(nn.Module):
     def __init__(self):
         super().__init__()
         # Encoding
@@ -47,12 +47,13 @@ class Unet(nn.Module):
         self.dec_block_2 = Decoder(128, 64)
         self.dec_block_1 = Decoder(64, 32)
 
-        # Compute ab channels
+        # Output block
         self.compute = nn.Sequential(
             nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=1, padding='same'),
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channels=32, out_channels=2, kernel_size=1, stride=1, padding='same'),
         )
+        self.tanh = nn.Tanh()
         
     def forward(self, x):
         # input shape (B, 1, 32, 32)
@@ -68,4 +69,5 @@ class Unet(nn.Module):
         d1 = self.dec_block_1(d2, s1) # (B, 32, 32, 32)
 
         ab = self.compute(d1) #(B, 2, 32, 32)
+        ab = self.tanh(ab)
         return ab
