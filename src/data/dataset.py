@@ -13,9 +13,6 @@ class Cifar10LAB(Dataset):
 
     Input : L  channel tensor (1, H, W) scaled to [0, 1]
     Target: ab channels tensor (2, H, W) scaled to roughly [-1, 1]
-
-    transform: optional applied on the RGB image
-               BEFORE converting to LAB, ensuring x/y alignment.
     """
 
     def __init__(
