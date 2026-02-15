@@ -33,7 +33,6 @@ if __name__ == "__main__":
     print("2. Model, Loss Function and Optimizer are ready")
 
     print("3. Starting Training...")
-    model.train()
     for epoch in range(config['num_epochs']):
         avg_loss = train_one_epoch(model, train_dataloader, optimizer, criterion, config['device'])
         scheduler.step()
