@@ -3,7 +3,7 @@ import torch
 from pathlib import Path
 
 
-ROOT_DIR = Path(__file__).resolve().parents[2]   # Colorization/
+ROOT_DIR = Path(__file__).resolve().parents[2] 
 PTS_PATH = ROOT_DIR / "assets" / "pts_in_hull.npy"
 
 def soft_encode(ab, topk=5, sigma=5.0):
