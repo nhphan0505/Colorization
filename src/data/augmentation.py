@@ -1,5 +1,4 @@
 import albumentations as A
-import cv2
 
 
 def train_transform(image_size = 32):
