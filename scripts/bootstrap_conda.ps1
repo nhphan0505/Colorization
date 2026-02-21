@@ -24,6 +24,7 @@ if ($envList -notmatch "^\s*$EnvName\s") {
 Write-Host "Activating $EnvName and installing editable package..."
 conda run -n $EnvName python -m pip install -U pip
 conda run -n $EnvName python -m pip install -e .
-conda activate $EnvName
 
 Write-Host "Done."
+
+Write-Host "To activate the environment, run: conda activate $EnvName"
