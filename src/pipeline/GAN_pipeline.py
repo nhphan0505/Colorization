@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from src.data import *
-from utils.seed import set_seed
+from src.utils.seed import set_seed
 from src.models import UNetGenerator, PatchDiscriminator
 from src.loss import GANLoss
 from src.train import GAN_trainer
