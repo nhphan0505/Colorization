@@ -1,4 +1,4 @@
-model: Zhang
+model: Convolutional autoencoder
 device: cuda
 
 train_transform: None
