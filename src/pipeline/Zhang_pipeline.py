@@ -7,7 +7,7 @@ from src.utils import *
 from src.models import DeepCNN
 from src.loss import RebalanceCEWithLogitsLoss
 from src.color.prior import color_weight
-from src.train import train_one_epoch
+from src.train import trainer
 if __name__ == "__main__":
     set_seed(42)
     with open('configs/zhang.yaml', 'r') as file:
@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     print("3. Starting Training...")
     for epoch in range(config['num_epochs']):
-        avg_loss = train_one_epoch(model, train_dataloader, optimizer, criterion, config['device'])
+        avg_loss = trainer(model, train_dataloader, optimizer, criterion, config['device'])
         scheduler.step()
         if (epoch + 1) % config['log_interval'] == 0:
             torch.save({"model": model.state_dict(),
