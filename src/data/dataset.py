@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, message="Failed to load image Python extension")
+
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
