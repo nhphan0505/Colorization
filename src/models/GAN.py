@@ -2,78 +2,77 @@ import torch
 import torch.nn as nn
 
 #====================Generator====================
-def conv_block(in_c, out_c, norm=True):
-    layers = [nn.Conv2d(in_c, out_c, kernel_size=4, stride=2, padding=1, bias=not norm)]
-    if norm: layers.append(nn.BatchNorm2d(out_c))
-    layers.append(nn.LeakyReLU(0.2, inplace=True))  # encoder use LeakyReLU
-    return nn.Sequential(*layers)
-
-def deconv_block(in_c, out_c, norm=True, dropout=False):
-    layers = [nn.ConvTranspose2d(in_c, out_c, kernel_size=4, stride=2, padding=1, bias=not norm)]
-    if norm: layers.append(nn.BatchNorm2d(out_c))
-    layers.append(nn.ReLU(inplace=True))            # decoder use ReLU
-    if dropout: layers.append(nn.Dropout(0.5))
-    return nn.Sequential(*layers)
-
-def conv3x3_halve(in_c, out_c):
-    # 3x3 stride=1 + BN + ReLU (paper: "3×3 conv, stride 1, halving channels, BN+ReLU")
-    return nn.Sequential(
-        nn.Conv2d(in_c, out_c, kernel_size=3, stride=1, padding=1, bias=False),
-        nn.BatchNorm2d(out_c),
-        nn.ReLU(inplace=True)
-    )
-
-class UNetGenerator(nn.Module):
-    def __init__(self, in_ch=1, out_ch=2):
+class Encoder(nn.Module):
+    def __init__(self, input_dim, output_dim, latent=False):
         super().__init__()
-        # Encoder (green, 4x4 s2; first has no BN)
-        self.e1 = nn.Conv2d(in_ch, 64, kernel_size=4, stride=2, padding=1)   # 32->16
-        self.e2 = conv_block(64, 128)                                        # 16->8
-        self.e3 = conv_block(128, 256)                                       # 8->4
-        self.e4 = conv_block(256, 512)                                       # 4->2
-        self.e5 = conv_block(512, 512)                                       # 2->1 (bottleneck 1x1)
-
-        # Decoder (orange, 4x4 deconv s2) + concat + 3x3 conv (BN+ReLU)
-        self.d1 = deconv_block(512, 512, dropout=True)                       # 1->2
-        self.cat1 = conv3x3_halve(512 + 512, 512)                            # [d1||e4] -> 512
-
-        self.d2 = deconv_block(512, 256, dropout=True)                       # 2->4
-        self.cat2 = conv3x3_halve(256 + 256, 256)                            # [d2||e3] -> 256
-
-        self.d3 = deconv_block(256, 128, dropout=True)                       # 4->8
-        self.cat3 = conv3x3_halve(128 + 128, 128)                            # [d3||e2] -> 128
-
-        self.d4 = deconv_block(128, 64, dropout=False)                       # 8->16
-        self.cat4 = conv3x3_halve(64 + 64, 64)                               # [d4||e1] -> 64  (16x16)
-
-        self.up_final = nn.ConvTranspose2d(64, 64, kernel_size=4, stride=2, padding=1)  # 16->32
-        self.final    = nn.Conv2d(64, out_ch, kernel_size=1, stride=1)       # 1x1 conv
-        self.tanh     = nn.Tanh()
-
+        self.conv = nn.Conv2d(in_channels=input_dim, out_channels=output_dim, kernel_size=3, stride=1, padding='same')
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.relu = nn.ReLU()
+        self.latent = latent
+        
     def forward(self, x):
-        # Encoder
-        e1 = self.e1(x)          # [B, 64, 16, 16]
-        e2 = self.e2(e1)         # [B,128,  8,  8]
-        e3 = self.e3(e2)         # [B,256,  4,  4]
-        e4 = self.e4(e3)         # [B,512,  2,  2]
-        b  = self.e5(e4)         # [B,512,  1,  1]
+        conv = self.conv(x)
+        conv = self.relu(conv)
+        if self.latent==False:
+            pool = self.pool(conv)
+        else:
+            pool = None
+        return conv, pool
 
-        # Decoder + skips
-        d1 = self.d1(b)                          # -> [B,512, 2, 2]
-        c1 = self.cat1(torch.cat([d1, e4], 1))   # -> [B,512, 2, 2]
+class Decoder(nn.Module):
+    def __init__(self, input_dim, output_dim):
+        super().__init__()
+        self.uconv = nn.ConvTranspose2d(in_channels=input_dim, out_channels=output_dim, kernel_size=3, stride=2, padding=1, output_padding=1)
+        self.conv = nn.Conv2d(in_channels=input_dim, out_channels=output_dim, kernel_size=3, stride=1, padding='same')
+        self.relu = nn.ReLU()
+        
+    def forward(self, x, skip_block):
+        uconv = self.uconv(x)
+        con = torch.concat([skip_block, uconv], dim=1)
+        conv = self.conv(con)
+        conv = self.relu(conv)
+        return conv
+        
+class UNetGenerator(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # Encoding
+        self.enc_block_1 = Encoder(1, 32)
+        self.enc_block_2 = Encoder(32, 64)
+        self.enc_block_3 = Encoder(64, 128)
+        self.enc_block_4 = Encoder(128, 256)
+        self.enc_block_5 = Encoder(256, 512, latent=True)
 
-        d2 = self.d2(c1)                         # -> [B,256, 4, 4]
-        c2 = self.cat2(torch.cat([d2, e3], 1))   # -> [B,256, 4, 4]
+        # Decoding
+        self.dec_block_4 = Decoder(512, 256)
+        self.dec_block_3 = Decoder(256, 128)
+        self.dec_block_2 = Decoder(128, 64)
+        self.dec_block_1 = Decoder(64, 32)
 
-        d3 = self.d3(c2)                         # -> [B,128, 8, 8]
-        c3 = self.cat3(torch.cat([d3, e2], 1))   # -> [B,128, 8, 8]
+        # Output block
+        self.compute = nn.Sequential(
+            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=1, padding='same'),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=32, out_channels=2, kernel_size=1, stride=1, padding='same'),
+        )
+        self.tanh = nn.Tanh()
+        
+    def forward(self, x):
+        # input shape (B, 1, 32, 32)
+        s1, p1 = self.enc_block_1(x) # (B, 32, 32, 32), (B, 32, 16, 16)
+        s2, p2 = self.enc_block_2(p1) # (B, 64, 32, 32), (B, 64, 8, 8)
+        s3, p3 = self.enc_block_3(p2) # (B, 128, 8, 8), (B, 128, 4, 4)
+        s4, p4 = self.enc_block_4(p3) # (B, 256, 4, 4), (B, 256, 2, 2)
+        latent, _ = self.enc_block_5(p4) # (B, 512, 2, 2)
 
-        d4 = self.d4(c3)                         # -> [B, 64,16,16]
-        c4 = self.cat4(torch.cat([d4, e1], 1))   # -> [B, 64,16,16]
+        d4 = self.dec_block_4(latent, s4) # (B, 256, 4, 4)
+        d3 = self.dec_block_3(d4, s3) # (B, 128, 8, 8)
+        d2 = self.dec_block_2(d3, s2) # (B, 64, 16, 16)
+        d1 = self.dec_block_1(d2, s1) # (B, 32, 32, 32)
 
-        u  = self.up_final(c4)                   # -> [B, 64,32,32]
-        out = self.final(u)                      # -> [B,  2,32,32]
-        return self.tanh(out)
+        ab = self.compute(d1) #(B, 2, 32, 32)
+        ab = self.tanh(ab) # [-1,1]
+        return ab
     
 
 #====================Dicriminator====================
