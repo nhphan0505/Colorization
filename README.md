@@ -1,10 +1,4 @@
-# 🎨 Deep Learning Image Colorization
-
-<p align="center">
-  <b>Automatic Image Colorization using Deep Learning</b><br>
-</p>
-
----
+# 🎨 A SURVEY ON IMAGE COLORIZATION METHODS UNDER RESOURCE CONSTRAINTS
 
 ## 📌 Overview
 
