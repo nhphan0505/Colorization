@@ -6,9 +6,9 @@ batch_size: 64
 loss: GANLoss
 optimizer: AdamW
 weight_decay: 0.00001
-G_learning_rate: 0.0001
+G_learning_rate: 0.0002
 D_learning_rate: 0.0001
 
 num_epochs: 500
 log_interval: 50
-model_save_path: outputs/checkpoints/GAN/
+model_save_path: checkpoints\models\GAN

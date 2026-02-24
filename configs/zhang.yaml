@@ -12,4 +12,4 @@ weights_path: assets/weights.pt
 
 num_epochs: 500
 log_interval: 50
-model_save_path: outputs/checkpoints/Zhang/
+model_save_path: checkpoints\models\Zhang
