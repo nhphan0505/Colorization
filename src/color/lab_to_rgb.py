@@ -14,8 +14,8 @@ def lab_to_rgb(L, ab):
         rgb image as numpy array (H, W, 3), range [0,1]
     """
     if L.dim() == 4 and ab.dim() == 4:
-        L = L.permute(0, 2, 3, 1).cpu().numpy()
-        ab = ab.permute(0, 2, 3, 1).cpu().numpy()
+        L = L.permute(0, 2, 3, 1).cpu().detach().numpy()
+        ab = ab.permute(0, 2, 3, 1).cpu().detach().numpy()
 
         # scale back
         L = L * 100.0
@@ -27,8 +27,8 @@ def lab_to_rgb(L, ab):
         return np.clip(rgb, 0.0, 1.0)
     
     if L.dim() == 3 and ab.dim() == 3:
-        L = L.permute(1, 2, 0).cpu().numpy()
-        ab = ab.permute(1, 2, 0).cpu().numpy()
+        L = L.permute(1, 2, 0).cpu().detach().numpy()
+        ab = ab.permute(1, 2, 0).cpu().detach().numpy()
 
         # scale back
         L = L * 100.0
