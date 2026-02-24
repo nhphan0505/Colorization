@@ -20,7 +20,7 @@ def GAN_trainer(epoch, G, D, dataloader, optimizer_G, optimizer_D, criterion_G, 
             total_loss_D += loss_D.item() * L.size(0)
 
         # Train Generator
-        for _ in range(epoch // 100 + 1):
+        for _ in range(2 + epoch // 300):
             optimizer_G.zero_grad()
             ab_fake = G(L)
             d_fake = D(torch.cat([L, ab_fake], dim=1))
@@ -28,7 +28,7 @@ def GAN_trainer(epoch, G, D, dataloader, optimizer_G, optimizer_D, criterion_G, 
 
             loss_G.backward()
             optimizer_G.step()
-            total_loss_G += loss_G.item() * L.size(0)
-            total_adv_G += adv_G.item() * L.size(0)
-            total_rec_G += rec_G.item() * L.size(0)
+            total_loss_G += loss_G.item() * L.size(0) / (2 + epoch // 300)
+            total_adv_G += adv_G.item() * L.size(0) / (2 + epoch // 300)
+            total_rec_G += rec_G.item() * L.size(0) / (2 + epoch // 300)
     return total_loss_G / len(dataloader.dataset), total_adv_G / len(dataloader.dataset), total_rec_G / len(dataloader.dataset), total_loss_D / len(dataloader.dataset)
