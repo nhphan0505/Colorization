@@ -1,4 +1,5 @@
 from .dataset import Cifar10LAB, DataLoader
+from .evaluation import EvalutationDataset
 from .augmentation import (
     train_transform,
     test_transform,
@@ -9,4 +10,5 @@ __all__ = [
     "Cifar10LAB",
     "train_transform",
     "test_transform",
+    "EvalutationDataset",
 ]
