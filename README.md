@@ -11,7 +11,7 @@ This project implements grayscale image colorization using deep neural networks.
 ### 1️⃣ Clone Repository
 
 ```bash
-git clone https://github.com/your-username/colorization.git
+git clone https://github.com/nhphan0505/Colorization.git
 cd colorization
 ```
 
